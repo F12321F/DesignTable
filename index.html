@@ -138,7 +138,7 @@ fieldset:disabled .chk{cursor:default}
 .logs .lh{font-size:13px;color:var(--muted)}
 .logs .lt{white-space:pre-wrap;line-height:1.6}
 .rtag{font-size:12px;border-radius:4px;padding:1px 6px;margin-right:4px;background:#eef;color:var(--ink);white-space:nowrap}
-.rtag.設計部{background:#e0f2fe;color:#0369a1}.rtag.工務部{background:#ffedd5;color:#c2410c}.rtag.業務部{background:#ede9fe;color:#6d28d9}.rtag.管理員{background:#fef3c7;color:#92400e}
+.rtag.設計部{background:#e0f2fe;color:#0369a1}.rtag.工務部{background:#ffedd5;color:#c2410c}.rtag.業務部{background:#ede9fe;color:#6d28d9}.rtag.外銷部{background:#dcfce7;color:#15803d}.rtag.管理員{background:#fef3c7;color:#92400e}
 .addlog{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
 .addlog textarea{flex:1;min-height:60px!important;border:1px solid #d5d9e2!important}
 
@@ -220,12 +220,14 @@ fieldset:disabled [data-fact=del],fieldset:disabled [data-rdel],fieldset:disable
   .chk:not(:has(input:checked)){color:#999}
 }
 </style>
+<meta name="robots" content="noindex,nofollow">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
 <header class="top">
   <div class="brand">📐 設計記錄表</div>
-  <select id="deptSel" title="部門"><option value="">選擇部門</option><option>業務部</option><option>設計部</option><option>工務部</option><option value="管理員">⭐ 管理員</option></select>
+  <select id="deptSel" title="部門"><option value="">選擇部門</option><option>業務部</option><option>外銷部</option><option>設計部</option><option>工務部</option><option value="管理員">⭐ 管理員</option></select>
   <span class="hbtn hidden" id="adminTag" title="管理員擁有所有欄位權限" style="background:#facc15;color:#422006;border-color:#facc15;font-weight:700">管理員模式</span>
   <select id="personSel" title="姓名"><option value="">選擇姓名</option></select>
   <button class="hbtn hidden" id="userChip" title="帳號：變更密碼／登出"></button>
@@ -233,7 +235,7 @@ fieldset:disabled [data-fact=del],fieldset:disabled [data-rdel],fieldset:disable
   <button class="hbtn hidden" id="btnPeople" title="人員管理（主管）">⚙ 人員</button>
 </header>
 <div class="npanel hidden" id="npanel"></div>
-<div class="banner hidden" id="memBanner">⚠ 此瀏覽器無法儲存資料（例如預覽模式），關閉頁面後資料會消失。請用 Chrome / Edge 直接開啟本檔案。</div>
+<div class="banner" id="memBanner">連線雲端資料庫中…</div>
 
 <!-- ================= LIST VIEW ================= -->
 <div class="wrap listview" id="listView">
@@ -278,9 +280,9 @@ fieldset:disabled [data-fact=del],fieldset:disabled [data-rdel],fieldset:disable
       <button type="button" class="noedit no-print hidden" id="btnNoEdit">✎ 修改編號</button>
     </div>
     <fieldset data-perm="data">
-      <div class="lockhint">🔒 此欄由「業務部」填寫，目前為唯讀</div>
+      <div class="lockhint">🔒 此欄由「業務部／外銷部」填寫，目前為唯讀</div>
       <div class="head-line">
-        <label>申請人 <select name="applicant" data-people="業務部"></select></label>
+        <label>申請人 <select name="applicant" data-people="業務部,外銷部"></select></label>
         <label>日期 <input type="date" name="date"></label>
       </div>
       <div class="row"><div class="lb">客戶名稱</div><div class="val"><input type="text" name="client"></div></div>
@@ -418,7 +420,7 @@ fieldset:disabled [data-fact=del],fieldset:disabled [data-rdel],fieldset:disable
       <div class="row"><div class="lb">設計圖檔<br>(PDF)</div><div class="val">
         <ul class="files" id="files"></ul>
         <div class="inline no-print"><label class="btn sm primary upl">📎 上傳 PDF<input type="file" id="pdfIn" accept=".pdf,application/pdf" multiple></label>
-        <span class="hint">上傳後業務部、工務部即可開啟下載，並可通知相關人員</span></div>
+        <span class="hint">上傳後業務部、外銷部、工務部即可開啟下載，並可通知相關人員</span></div>
       </div></div>
       <div class="pair">
         <div class="row"><div class="lb">完成日期</div><div class="val"><input type="date" name="doneDate"></div></div>
@@ -432,9 +434,9 @@ fieldset:disabled [data-fact=del],fieldset:disabled [data-rdel],fieldset:disable
 
   <!-- 業務簽收欄（獨立） -->
   <section class="sheet" id="sec-sign">
-    <div class="sheet-h">業務簽收欄<small>（業務部填寫）設計完成後確認成果，或退回修改</small></div>
+    <div class="sheet-h">業務簽收欄<small>（業務部／外銷部填寫）設計完成後確認成果，或退回修改</small></div>
     <fieldset data-perm="sign">
-      <div class="lockhint">🔒 此欄由「業務部」填寫，目前為唯讀</div>
+      <div class="lockhint">🔒 此欄由「業務部／外銷部」填寫，目前為唯讀</div>
       <div class="row"><div class="lb">業務意見</div><div class="val"><textarea name="signNote" rows="3" placeholder="確認簽收可留空；退回修改請說明需要調整的地方"></textarea></div></div>
       <div class="row"><div class="lb">業務簽收</div><div class="val inline"><input type="text" name="salesSign" readonly>
         <button type="button" class="btn sm ok no-print" id="btnSalesSign">✍ 確認簽收</button>
@@ -456,11 +458,12 @@ fieldset:disabled [data-fact=del],fieldset:disabled [data-rdel],fieldset:disable
 
 <script>
 /* ================= 基本設定 ================= */
-const DEPTS = ['業務部','設計部','工務部'];
+const DEPTS = ['業務部','外銷部','設計部','工務部'];
+const SALES = ['業務部','外銷部'];   // 外銷部與業務部權限相同
 const STATUSES = ['草稿','已送出','設計中','設計完成','施工中','結案'];
 const PHOTO_CATS = [
-  {k:'site',   t:'① 工地現況（設計前）', d:'業務拜訪客戶時拍攝，讓設計人員了解現地條件', ph:'註明狀況，例：2F 梁底高度約 320cm、地面為土方未整平…', up:['業務部'], note:['業務部']},
-  {k:'issue',  t:'② 施工狀況回報',       d:'施工中遇到的狀況，讓設計人員即時掌握現地情形', ph:'註明狀況，例：B 軸梁深與圖面不符，實測 85cm…', up:['工務部','業務部'], note:['工務部','業務部'], st:['工務部','業務部','設計部']},
+  {k:'site',   t:'① 工地現況（設計前）', d:'業務拜訪客戶時拍攝，讓設計人員了解現地條件', ph:'註明狀況，例：2F 梁底高度約 320cm、地面為土方未整平…', up:['業務部','外銷部'], note:['業務部','外銷部']},
+  {k:'issue',  t:'② 施工狀況回報',       d:'施工中遇到的狀況，讓設計人員即時掌握現地情形', ph:'註明狀況，例：B 軸梁深與圖面不符，實測 85cm…', up:['工務部','業務部','外銷部'], note:['工務部','業務部','外銷部'], st:['工務部','業務部','外銷部','設計部']},
   {k:'record', t:'③ 完工', d:'完工狀況，以及施工良好、特殊案子、值得記錄的施工', ph:'註明狀況，例：2F 支撐架完工，1.5x1.8 矩陣施作順利…', up:['工務部'], note:['工務部']}
 ];
 const ISSUE_ST = ['待處理','處理中','已解決'];
@@ -477,7 +480,7 @@ const DEFAULT_PW='0000';
 // 簡易雜湊（避免密碼以明碼存放；本機檔案無法做到伺服器等級的安全）
 const hash = s => { let h=5381; for(const c of 'dr#'+s) h=((h<<5)+h+c.charCodeAt(0))|0; return 'h'+(h>>>0).toString(36) };
 const pwOk = (p,v) => p.pw ? hash(v)===p.pw : v===DEFAULT_PW;
-// 只有設計部設有主管；業務部、工務部皆為一般人員
+// 只有設計部設有主管；業務部、外銷部、工務部皆為一般人員
 const isMgrP = p => !!p?.mgr && p.dept==='設計部';
 // 表單管理員：擁有所有欄位與管理權限（檢查、維護表單用）
 const ADMIN='管理員';
@@ -486,10 +489,10 @@ const me = { get p(){ return meP() }, get name(){ return meP()?.name||'' }, get 
   get dmgr(){ return isMgrP(meP()) } };   // dmgr：設計部主管（唯一可管理人員、權限、密碼重設）
 const roleOk = list => me.admin || list.includes(me.role);
 const can = {
-  data:   () => roleOk(['業務部']),
+  data:   () => roleOk(SALES),
   eval:   () => me.admin || (me.role==='設計部' && me.mgr),
   design: () => roleOk(['設計部']),
-  sign:   () => roleOk(['業務部']),
+  sign:   () => roleOk(SALES),
   any:    () => !!me.p
 };
 
@@ -501,20 +504,76 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2000) }
 function needMe(){ if(me.p) return true; toast('請先在右上角選擇部門與姓名'); $('#deptSel').focus(); return false }
 
-/* ================= 儲存（IndexedDB，失敗時改用記憶體） ================= */
-let db=null, mem=null;
+/* ================= 雲端儲存（Supabase） ================= */
+// publishable key 本來就是公開給瀏覽器用的；資料由「公司帳號登入＋RLS」保護
+const SB_URL='https://zpdtadyuorvzppxejtwj.supabase.co', SB_KEY='sb_publishable_ZI_-MgPKo6uotlAmYTkk0Q_NzZ1hbJd';
+let sb=null;
 const STORES=['records','people','meta','notes','files'];
-function openDB(){ return new Promise(res=>{
-  const fallback=()=>{ mem={}; STORES.forEach(n=>mem[n]=new Map()); $('#memBanner').classList.remove('hidden'); res() };
-  try{ const r=indexedDB.open('designRecords',3);
-    r.onupgradeneeded=()=>{ const d=r.result; STORES.forEach(n=>{ if(!d.objectStoreNames.contains(n)) d.createObjectStore(n,{keyPath:'id'}) }) };
-    r.onsuccess=()=>{ db=r.result; res() }; r.onerror=fallback;
-  }catch(e){ fallback() } }) }
 const req = q => new Promise((res,rej)=>{ q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error) });
-const dbAll = n => mem ? Promise.resolve([...mem[n].values()]) : req(db.transaction(n,'readonly').objectStore(n).getAll());
-const dbPut = (n,o) => mem ? (mem[n].set(o.id,structuredClone(o)),Promise.resolve()) : req(db.transaction(n,'readwrite').objectStore(n).put(o));
-const dbGet = (n,id) => mem ? Promise.resolve(mem[n].get(id)) : req(db.transaction(n,'readonly').objectStore(n).get(id));
-const dbDel = (n,id) => mem ? (mem[n].delete(id),Promise.resolve()) : req(db.transaction(n,'readwrite').objectStore(n).delete(id));
+const chk = r => { if(r.error) throw r.error; return r.data };
+const cloudFail = e => { toast('⚠ 雲端連線失敗：'+(e?.message||e)); throw e };
+const blobToURL = b => new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(fr.error); fr.readAsDataURL(b) });
+// 一般資料存資料表；PDF 等檔案（files）存 Storage
+async function dbAll(n){ try{
+  if(n==='files'){ const list=chk(await sb.storage.from('files').list('',{limit:1000})); return (await Promise.all(list.filter(o=>o.id).map(o=>dbGet('files',o.name)))).filter(Boolean) }
+  const out=[]; for(let from=0;;from+=500){ const d=chk(await sb.from(n).select('data').range(from,from+499)); out.push(...d.map(x=>x.data)); if(d.length<500) break }
+  return out }catch(e){ cloudFail(e) } }
+async function dbPut(n,o){ try{
+  if(n==='files'){ const b=await (await fetch(o.data)).blob(); chk(await sb.storage.from('files').upload(o.id,b,{upsert:true,contentType:b.type||'application/octet-stream'})); return }
+  chk(await sb.from(n).upsert({id:o.id,data:o})) }catch(e){ cloudFail(e) } }
+async function dbGet(n,id){ try{
+  if(n==='files'){ const r=await sb.storage.from('files').download(id); if(r.error) return undefined; return {id,data:await blobToURL(r.data)} }
+  return chk(await sb.from(n).select('data').eq('id',id).maybeSingle())?.data }catch(e){ cloudFail(e) } }
+async function dbDel(n,id){ try{
+  if(n==='files'){ chk(await sb.storage.from('files').remove([id])); return }
+  chk(await sb.from(n).delete().eq('id',id)) }catch(e){ cloudFail(e) } }
+
+// 公司共用帳號登入（同一台裝置只需一次）
+async function cloudLogin(){
+  const s=(await sb.auth.getSession()).data.session; if(s) return;
+  await new Promise(res=>{
+    const go=async()=>{ const em=$('#cEmail').value.trim(), pw=$('#cPw').value; if(!em||!pw){ $('#cErr').textContent='請輸入 Email 與密碼'; return }
+      $('#cErr').textContent='登入中…';
+      const {error}=await sb.auth.signInWithPassword({email:em,password:pw});
+      if(error){ $('#cErr').textContent = /invalid/i.test(error.message)?'帳號或密碼錯誤':'登入失敗：'+error.message; return }
+      closeModal(); res() };
+    modal('🏢 公司帳號登入', `<p class="mhint">請輸入公司共用帳號（向設計部主管索取）。同一台裝置只需登入一次，登入後再選擇部門與姓名。</p>
+      <div class="srow" style="grid-template-columns:70px 1fr"><b>Email</b><input type="email" id="cEmail" autocomplete="username">
+      <b>密碼</b><input type="password" id="cPw" autocomplete="current-password"></div><div class="err" id="cErr"></div>`,
+      [{t:'登入',cls:'primary',fn:()=>{ go(); return false }}], false);
+    ['#cEmail','#cPw'].forEach(s=>$(s).addEventListener('keydown',e=>{ if(e.key==='Enter') go() }));
+  }) }
+async function cloudLogout(){ if(!await ask('登出公司帳號後，這台裝置要重新輸入公司帳號密碼才能使用。確定？')) return;
+  store.set('meAuth',''); store.set('meVer','0'); await sb.auth.signOut(); location.reload() }
+
+// 讀取這台電腦舊的本機資料（雲端化之前存在瀏覽器裡的）
+function localDump(){ return new Promise(res=>{ let done=false; const fin=v=>{ if(!done){ done=true; res(v) } };
+  try{ const r=indexedDB.open('designRecords');
+    r.onupgradeneeded=()=>{ r.transaction.abort(); fin(null) }; r.onerror=()=>fin(null); r.onblocked=()=>fin(null);
+    r.onsuccess=async()=>{ const d=r.result, out={};
+      try{ for(const n of STORES) out[n]=d.objectStoreNames.contains(n)?await req(d.transaction(n,'readonly').objectStore(n).getAll()):[] }catch(e){ d.close(); return fin(null) }
+      d.close(); fin(out) };
+  }catch(e){ fin(null) } }) }
+async function migrateLocal(){
+  const L=await localDump(); if(!L || !(L.people.length||L.records.length)) return false;
+  if(!await ask(`這台電腦上有雲端化之前的舊資料：\n申請單 ${L.records.length} 張、人員 ${L.people.length} 位、檔案 ${L.files.length} 個。\n\n要全部上傳到雲端嗎？（上傳後大家都看得到）`)) return false;
+  const all=STORES.flatMap(n=>L[n].map(o=>[n,o])); let i=0;
+  for(const [n,o] of all){ await dbPut(n,o); if(++i%5===0) toast(`上傳中… ${i}/${all.length}`) }
+  toast(`✓ 已上傳 ${all.length} 筆資料到雲端`); return true }
+
+// 即時同步：別人新增／修改後，畫面自動更新
+function subscribeLive(){
+  sb.channel('live').on('postgres_changes',{event:'*',schema:'public'},p=>{
+    const t=p.table, row=p.new?.data, id=p.old?.id||p.new?.id;
+    if(t==='meta'){ if(row?.id==='noSet') noSet={...DEF_NO,...row,next:{...(row.next||{})}}; return }
+    const arr = t==='records'?records : t==='people'?people : t==='notes'?notes : null; if(!arr||!id) return;
+    if(t==='records' && cur?.id===id){ if(p.eventType!=='DELETE' && row?.updatedBy && row.updatedBy!==me.name) toast(`此單剛被 ${row.updatedBy} 修改，關閉後重新打開可看到最新內容`); return }
+    const i=arr.findIndex(x=>x.id===id);
+    if(p.eventType==='DELETE'){ if(i>=0) arr.splice(i,1) } else if(row){ if(i<0) arr.push(row); else arr[i]=row }
+    if(t==='people'){ fillPersonSel(); if(!me.p) onIdentity() }
+    if(t==='notes') updateBell();
+    if(!cur) renderList();
+  }).subscribe() }
 
 /* ================= 對話框 ================= */
 let mVer=0, mDismiss=true;
@@ -547,7 +606,7 @@ function onIdentity(){
   $('#btnPeople').classList.toggle('hidden',!me.dmgr);
   const p=me.p; $('#deptSel').classList.toggle('hidden',!!p); $('#personSel').classList.toggle('hidden',!!p);
   $('#userChip').classList.toggle('hidden',!p); if(p) $('#userChip').textContent=`👤 ${p.name}（${p.dept===ADMIN?'管理員':p.dept}${isMgrP(p)?'主管':''}）｜切換／登出`;
-  $('#btnNew').classList.toggle('hidden',!roleOk(['業務部']));
+  $('#btnNew').classList.toggle('hidden',!roleOk(SALES));
   $('#adminTag').classList.toggle('hidden',!me.admin);
   $('#npanel').classList.add('hidden'); updateBell();
   if(cur){ applyLocks(); renderPhotos(); renderSkFiles() } else renderList();
@@ -583,7 +642,7 @@ function changePwModal(first){
 function logout(){ store.set('meAuth',''); store.set('meVer','0'); if(cur) history.back(); $('#deptSel').value=''; fillPersonSel(); onIdentity(); toast('已登出，請在右上角選擇部門與姓名登入') }
 $('#userChip').onclick=()=>{ const p=me.p; if(!p) return;
   modal(`👤 ${p.name}`, `<p class="mhint">部門：${p.dept===ADMIN?'⭐ 管理員':p.dept}${isMgrP(p)?'（主管）':''}<br>此裝置已記住登入。</p>`,
-    [{t:'關閉'},{t:'🔑 變更密碼',fn:()=>{ setTimeout(()=>changePwModal(false)) }},{t:'登出／切換使用者',cls:'primary',fn:logout}]) };
+    [{t:'關閉'},{t:'🔑 變更密碼',fn:()=>{ setTimeout(()=>changePwModal(false)) }},{t:'🏢 登出公司帳號',fn:()=>{ setTimeout(cloudLogout) }},{t:'登出／切換使用者',cls:'primary',fn:logout}]) };
 
 function setupModal(){
   modal('首次使用：建立設計部主管與管理員', `<p class="mhint">本系統只有「設計部」設有主管，由主管在「⚙ 人員」建立各部門人員、變更權限與重設密碼。所有人預設密碼為 <b>0000</b>。</p>
@@ -668,7 +727,7 @@ function readForm(){
 }
 function fillPeopleSelects(r){
   $$('select[data-people]').forEach(sel=>{
-    const names=activeIn(sel.dataset.people).map(p=>p.name), v=getPath(r,sel.name)||'';
+    const names=sel.dataset.people.split(',').flatMap(d=>activeIn(d)).map(p=>p.name), v=getPath(r,sel.name)||'';
     if(v && !names.includes(v)) names.push(v);
     sel.innerHTML='<option value="">—</option>'+names.map(n=>`<option>${esc(n)}</option>`).join('');
   });
@@ -724,7 +783,7 @@ async function save(){
   clearTimeout(saveTimer); saveTimer=null; if(!cur) return;
   Object.assign(cur, readForm());
   cur.updatedAt=Date.now(); cur.updatedBy=me.name;
-  await dbPut('records',cur);
+  try{ await dbPut('records',cur) }catch(e){ $('#saveState').textContent='⚠ 儲存失敗，請檢查網路'; return }
   const i=records.findIndex(r=>r.id===cur.id); if(i<0) records.push(cur); else records[i]=cur;
   $('#noShow').textContent=cur.no||'（送出後產生）';
   $('#saveState').textContent='✓ 已儲存 '+fmt(cur.updatedAt).split(' ')[1];
@@ -739,7 +798,7 @@ function isTodo(r){
   const n=me.name; if(!n) return false;
   const mine = r.applicant===n || r.createdBy===n, myDesign = r.eval?.designer===n;
   if(me.admin) return r.status!=='結案';
-  if(me.role==='業務部') return mine && (r.status==='草稿' || (r.status==='設計完成' && !r.salesSign));
+  if(SALES.includes(me.role)) return mine && (r.status==='草稿' || (r.status==='設計完成' && !r.salesSign));
   if(me.role==='設計部') return (me.mgr && r.status==='已送出') || (myDesign && (r.status==='設計中' || openIssues(r)>0));
   return r.status==='施工中' || openIssues(r)>0;
 }
@@ -762,8 +821,8 @@ function renderList(){
       📷 現況 ${cnt('site')}・施工 ${cnt('issue')}・完工 ${cnt('record')}　💬 ${(r.logs||[]).filter(l=>!l.sys).length}<br>
       📎 PDF ${(r.files||[]).length}　✎ 圖面修改 ${(r.revisions||[]).filter(x=>x.type==='圖面修改').length}・計算書修改 ${(r.revisions||[]).filter(x=>x.type==='計算書修改').length}<br>更新 ${fmt(r.updatedAt)}${r.updatedBy?' · '+esc(r.updatedBy):''}</div></div>`;
   }).join('') : `<div class="empty">${!me.p
-      ? '👆 請先在右上角選擇「部門」與「姓名」<br><br>業務部人員選好後，會出現「＋ 新增設計申請」按鈕，按下即可開始填寫設計記錄表。'
-      : !records.length ? (roleOk(['業務部']) ? '目前還沒有設計記錄表，請按右上方「＋ 新增設計申請」開始填寫。' : '目前還沒有設計記錄表，需由業務部人員新增申請。')
+      ? '👆 請先在右上角選擇「部門」與「姓名」<br><br>業務部／外銷部人員選好後，會出現「＋ 新增設計申請」按鈕，按下即可開始填寫設計記錄表。'
+      : !records.length ? (roleOk(SALES) ? '目前還沒有設計記錄表，請按右上方「＋ 新增設計申請」開始填寫。' : '目前還沒有設計記錄表，需由業務部或外銷部人員新增申請。')
       : filter==='待辦'?'目前沒有待辦案件 🎉':'沒有符合的設計記錄表'}</div>`;
 }
 
@@ -1142,10 +1201,17 @@ $('#importFile').onchange=async e=>{ const f=e.target.files[0]; e.target.value='
 
 /* ================= 啟動 ================= */
 (async()=>{
-  await openDB();
+  try{
+    if(!window.supabase) throw new Error('無法載入雲端元件，請確認網路連線');
+    sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+    $('#memBanner').classList.add('hidden');
+    await cloudLogin();
+    if(!(await dbAll('people')).length) await migrateLocal();
+  }catch(e){ $('#memBanner').textContent='⚠ 無法連線雲端資料庫：'+(e?.message||e)+'（請檢查網路後重新整理）'; $('#memBanner').classList.remove('hidden'); return }
   let meta; [records, people, notes, meta] = await Promise.all([dbAll('records'), dbAll('people'), dbAll('notes'), dbAll('meta')]);
   const ns=meta.find(x=>x.id==='noSet'); if(ns) noSet={...DEF_NO,...ns,next:{...(ns.next||{})}};
   fillPersonSel(); history.replaceState({v:'list'},''); onIdentity();
+  subscribeLive();
   if(!people.length) setupModal();
 })();
 </script>
